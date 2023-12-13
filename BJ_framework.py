@@ -82,7 +82,7 @@ class BlackjackGame:
     def start_game(self):
         self.player.hand = Hand()
         self.dealer.hand = Hand()
-
+        
         for i in range (2):
             self.player.hand.add_card(self.deck.deal())
             self.dealer.hand.add_card(self.deck.deal())
@@ -180,7 +180,6 @@ class BlackjackGUI:
 
         for card in self.game.player.hand.cards[:-1]:  # All cards except the last one
             img = PhotoImage(file=card.get_image())
-            img = img.subsample(3, 3)  # Resize the image (adjust according to your preference)
             lbl = tk.Label(player_previous_frame, image=img)
             lbl.image = img
             lbl.pack(side=tk.TOP, pady=5)  # Add vertical space between cards
@@ -231,4 +230,3 @@ if __name__ == "__main__":
     game_logic = BlackjackGame()
     app = BlackjackGUI(game_logic)
     app.run()
-
