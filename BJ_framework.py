@@ -1,34 +1,34 @@
+## Code finished!! 
 import tkinter as tk
 from tkinter import PhotoImage, messagebox
 import random
 
 class Card:
-    def __init__(self, suit: str, value: str):
+    def __init__(self, suit: str, value: int):
         self.suit = suit
-        self.value = value
+        self.value = value        
         pass
 
     def get_numeric_value(self) -> int:
-        if self.value in ['K','Q','J']:
+        if self.value in ['K', 'Q', 'J']:
             return 10
         elif self.value == 'A':
             return 11
         else:
             return int(self.value)
     pass
- 
 
     def get_image(self):
-        return f"img/{self.value}_of_{self.suit}.png"  
+        return f"img/{self.value}_of_{self.suit}.png"        
     pass
 
 class Deck:
-    def __init__(self, suits =  [], values = []):
+    def __init__(self, suits = [], values = []):
         self.cards = []
         for value in values:
             for suit in suits:
                 self.cards.append(Card(suit,value))
-    pass
+        pass
 
     def shuffle(self):
         random.shuffle(self.cards)
@@ -63,12 +63,13 @@ class Hand:
         while total_value > 21 and num_aces:
             total_value -= 10
             num_aces -= 1
+
         return total_value
     pass
 
 class Player:
     def __init__(self, name):
-        self.name = name 
+        self.name = name
         self.hand = Hand()
         pass
 
@@ -77,32 +78,28 @@ class BlackjackGame:
         self.player = Player("Player")
         self.dealer = Player("Dealer")
         self.deck = EnglishDeck()
+        self.deck.shuffle()
         pass
 
     def start_game(self):
         self.player.hand = Hand()
         self.dealer.hand = Hand()
-        
+
         for i in range (2):
             self.player.hand.add_card(self.deck.deal())
             self.dealer.hand.add_card(self.deck.deal())
         pass
 
     def hit(self)-> bool:
-         self.player.hand.add_card(self.deck.deal())
-         return self.player.hand.value() > 21
+        self.player.hand.add_card(self.deck.deal())
+        return self.player.hand.value() > 21
     pass
 
     def dealer_hit(self) -> bool:
-       while self.dealer.hand.value() < 17:
-            self.dealer.hand.add_card(self.deck.deal())
+        if self.dealer.hand.value() >= 17:
+            return False  # No más cartas si el dealer tiene 17 o más
+        self.dealer.hand.add_card(self.deck.deal())
         return self.dealer.hand.value() <= 21
-    pass
-
-    def determine_winner(self):
-        def __init__(self, player, dealer):
-        self.player = player
-        self.dealer = dealer
 
     def determine_winner(self):
         player_value = self.player.hand.value()
@@ -151,17 +148,29 @@ class BlackjackGUI:
         self.update_interface()
 
     def handle_hit(self, event):
-        if self.game.hit():
+        try:
+            if self.game.hit():
+                self.update_interface()
+                self.end_game("You've busted! The house wins.")
+                return
             self.update_interface()
-            self.end_game("You've busted! The house wins.")
-            return
-        self.update_interface()
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
 
     def handle_stand(self):
         self.btn_stand.config(state=tk.DISABLED)
-        while self.game.dealer_hit():
-            self.update_interface()
-        self.end_game(self.game.determine_winner())
+        self.process_dealer_hit()
+
+        return self.dealer.hand.value() <= 21
+    def process_dealer_hit(self):
+        try:
+            if self.game.dealer_hit():
+                self.update_interface()
+                self.root.after(1000, self.process_dealer_hit)  # Espera 1 segundo antes de la siguiente acción
+            else:
+                self.end_game(self.game.determine_winner())
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
 
     def update_interface(self):
         # Remove all widgets from player, deck, and dealer frames
@@ -180,6 +189,7 @@ class BlackjackGUI:
 
         for card in self.game.player.hand.cards[:-1]:  # All cards except the last one
             img = PhotoImage(file=card.get_image())
+            img = img.subsample(3, 3)  # Resize the image (adjust according to your preference)
             lbl = tk.Label(player_previous_frame, image=img)
             lbl.image = img
             lbl.pack(side=tk.TOP, pady=5)  # Add vertical space between cards
